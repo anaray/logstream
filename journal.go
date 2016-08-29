@@ -37,8 +37,11 @@ func CreateJournal(basePath string) (*Journal, error) {
 		Channel: make(chan JournalEntry, 50)}
 	go func() {
 		for {
-			e := <-journal.Channel
-			journal.entries[e.Ino] = e
+			var e JournalEntry
+			select {
+			case e = <-journal.Channel:
+				journal.entries[e.Ino] = e
+			}
 		}
 	}()
 	return &journal, nil
