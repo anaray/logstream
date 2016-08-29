@@ -1,0 +1,15 @@
+[agent]
+id="agent007"
+admin_port=5002
+conf_source="some_conf_location_like_etcd/custom"
+journal_location="/"
+
+[log]
+  [log.access]
+  location="/opt/installs/server/logs"
+  selector="*.access"
+  grab_interval=5s
+  sink_type="rest"
+  sink="http://localhost/push"
+
+  [log.app_server]
