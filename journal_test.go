@@ -1,30 +1,28 @@
 package logstream
 
 import (
-	"fmt"
+	//	"fmt"
 	"testing"
 	"time"
 )
 
 func TestCreateJournal(t *testing.T) {
-	_, err := CreateJournal("")
+	_, _, err := CreateJournal("", writeToStdOut)
 	if err == nil {
 		t.Error("logstream: expecting error when location is empty.")
 	}
-	f, err := CreateJournal("testdir")
+
+	a, s, err := CreateJournal("testdir", writeToStdOut)
+	if a == nil || s == nil {
+		t.Error("logstream: expecting 2 channels, one for adding Journal entry and one for sweep event.")
+	}
 	if err != nil {
 		t.Error("logstream: expecting a succesful journal creation.")
-	}
-	if f == nil {
-		t.Error("logstream: expecting a journal file.")
-	}
-	if f.path != "testdir/lgs_jrnl.json" {
-		t.Error("logstream: expecting a journal file testdir/lgs_jrnl.json.")
 	}
 }
 
 func TestJournalWrite(t *testing.T) {
-	journal, err := CreateJournal("testdir")
+	a, s, err := CreateJournal("testdir", writeToStdOut)
 	if err != nil {
 		t.Error("logstream: expecting a succesful journal creation.")
 	}
@@ -36,12 +34,10 @@ func TestJournalWrite(t *testing.T) {
 		je.Ino = i
 		je.Byte_Offset = 10
 		je.Hash = "1FDAA"
-		journal.Channel <- je
+		a <- je
 	}
 
 	time.Sleep(time.Second)
-	fmt.Println("Entry 2:", journal.entries)
-	if len(journal.entries) != 10 {
-			t.Error("logstream: expected 10 journal entries, but found ", len(journal.entries))
-	}
+	s <- true
+	time.Sleep(time.Second)
 }
