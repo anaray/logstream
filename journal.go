@@ -26,7 +26,7 @@ type Persist func(journalEntries *map[uint64]JournalEntry, waitGroup *sync.WaitG
 
 var JOURNAL_ID = "lgs_jrnl.json"
 
-func CreateJournal(basePath string, persist Persist) (chan JournalEntry, chan bool, error) { //(*Journal, error) {
+func CreateJournal(basePath string, persist Persist) (chan JournalEntry, chan bool, error) {
 	if basePath == "" {
 		return nil, nil, errors.New("logstream: Journal base path not specified!")
 	}
@@ -56,6 +56,8 @@ func CreateJournal(basePath string, persist Persist) (chan JournalEntry, chan bo
 				if sweep {
 					wg.Add(1)
 					go persist(&journal.entries, &wg)
+					wg.Wait()
+					journal.entries = make(map[uint64]JournalEntry)
 				}
 			}
 		}
