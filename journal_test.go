@@ -1,9 +1,9 @@
 package logstream
 
 import (
-	//	"fmt"
 	"testing"
 	"time"
+	"sync"
 )
 
 func TestCreateJournal(t *testing.T) {
@@ -22,11 +22,17 @@ func TestCreateJournal(t *testing.T) {
 }
 
 func TestJournalWrite(t *testing.T) {
-	a, s, err := CreateJournal("testdir", writeToStdOut)
+
+	f := func(val *map[uint64]JournalEntry, wg *sync.WaitGroup){
+		defer wg.Done()
+		if len(*val) != 10 {
+			t.Error("logstream: expecting 10 journal entries.")
+			}
+	}
+	a, s, err := CreateJournal("testdir", f)
 	if err != nil {
 		t.Error("logstream: expecting a succesful journal creation.")
 	}
-
 	var je JournalEntry
 	var i uint64
 	for i = 0; i < 10; i++ {
@@ -36,7 +42,6 @@ func TestJournalWrite(t *testing.T) {
 		je.Hash = "1FDAA"
 		a <- je
 	}
-
 	time.Sleep(time.Second)
 	s <- true
 	time.Sleep(time.Second)
