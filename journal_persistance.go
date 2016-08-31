@@ -5,19 +5,19 @@ import (
 	"sync"
 )
 
-func writeToJson(val *map[uint64]JournalEntry, wg *sync.WaitGroup) {
+func writeToJson(journal *Journal, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 }
 
-func writeToGob(val *map[uint64]JournalEntry, wg *sync.WaitGroup) {
+func writeToGob(journal *Journal, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 }
 
-func writeToStdOut(val *map[uint64]JournalEntry, wg *sync.WaitGroup) {
+func writeToStdOut(journal *Journal, wg *sync.WaitGroup) {
 	defer wg.Done()
-	for key, value := range *val {
+	for key, value := range journal.entries {
 		fmt.Println("Key:", key, "Value:", value)
 	}
 }

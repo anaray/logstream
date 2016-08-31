@@ -23,9 +23,9 @@ func TestCreateJournal(t *testing.T) {
 
 func TestJournalWrite(t *testing.T) {
 
-	f := func(val *map[uint64]JournalEntry, wg *sync.WaitGroup){
+	f := func(journal *Journal, wg *sync.WaitGroup){
 		defer wg.Done()
-		if len(*val) != 10 {
+		if len(journal.entries) != 10 {
 			t.Error("logstream: expecting 10 journal entries.")
 			}
 	}

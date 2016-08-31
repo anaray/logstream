@@ -22,7 +22,7 @@ type Journal struct {
 
 // add the any kind of persistance, implementation functions are defined in
 // file journal_persistance.go
-type Persist func(journalEntries *map[uint64]JournalEntry, waitGroup *sync.WaitGroup)
+type Persist func(journal *Journal, waitGroup *sync.WaitGroup)
 
 var JOURNAL_ID = "lgs_jrnl.json"
 
@@ -55,7 +55,7 @@ func CreateJournal(basePath string, persist Persist) (chan JournalEntry, chan bo
 			case sweep = <-sweepChan:
 				if sweep {
 					wg.Add(1)
-					go persist(&journal.entries, &wg)
+					go persist(&journal, &wg)
 					wg.Wait()
 					journal.entries = make(map[uint64]JournalEntry)
 				}
