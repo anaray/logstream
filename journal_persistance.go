@@ -3,6 +3,8 @@ package logstream
 import (
 	"bytes"
 	"encoding/gob"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,6 +13,19 @@ import (
 
 func writeToJson(journal *Journal, wg *sync.WaitGroup) error {
 	defer wg.Done()
+	j, err := json.Marshal(journal)
+	if err != nil {
+		return err
+	}
+	file, file_err := os.OpenFile(journal.Path, os.O_APPEND|os.O_WRONLY, 0660)
+	if file_err != nil {
+		err_str := fmt.Errorf("logstream: Error opening logstream journal path: %s", file_err.Error())
+		return errors.New(err_str.Error())
+	}
+	defer file.Close()
+	if _, err = file.Write(append(j, '\n')); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -25,7 +25,7 @@ type Journal struct {
 type Persist func(journal *Journal, waitGroup *sync.WaitGroup) error
 type Load func(identifier string) (*Journal, error)
 
-var JOURNAL_ID = "logstream.jrnl"
+const JOURNAL_ID = "logstream.jrnl"
 
 func CreateJournal(basePath string, persist Persist, load Load) (chan JournalEntry, chan bool, error) {
 	if basePath == "" {
