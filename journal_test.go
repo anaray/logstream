@@ -5,6 +5,7 @@ import (
 	"sync"
 	"testing"
 	"time"
+	"strconv"
 )
 
 func TestCreateJournal(t *testing.T) {
@@ -41,10 +42,11 @@ func TestJournalWrite(t *testing.T) {
 		t.Error("logstream: expecting a succesful journal creation.")
 	}
 	var je JournalEntry
-	var i uint64
-	for i = 0; i < 10; i++ {
+	var i int
+	for i = 1; i <= 10; i++ {
 		je = JournalEntry{}
-		je.Ino = i
+		n := strconv.Itoa(i)
+		je.File = "/a/" + n
 		je.Byte_Offset = 10
 		je.Hash = "1FDAA"
 		a <- je
@@ -60,10 +62,11 @@ func TestJournalPersistance(t *testing.T) {
 		t.Error("logstream: expecting a succesful journal creation.")
 	}
 	var je JournalEntry
-	var i uint64
+	var i int
 	for i = 0; i < 10; i++ {
 		je = JournalEntry{}
-		je.Ino = i
+		n := strconv.Itoa(i)
+		je.File = "/a/" + n
 		je.Byte_Offset = 10
 		je.Hash = "1FDAA"
 		a <- je
@@ -78,25 +81,26 @@ func TestWriteAndLoadToAndFromGob(t *testing.T) {
 	wg.Add(1)
 	journalFile := filepath.Join("testdir", JOURNAL_ID)
 	journal := Journal{Path: journalFile,
-		Entries: make(map[uint64]JournalEntry),
+		Entries: make(map[string]JournalEntry),
 	}
 	je := JournalEntry{}
-	je.Ino = 10
+	ten := strconv.Itoa(10)
+	je.File = "/a/" + ten
 	je.Byte_Offset = 10
 	je.Hash = "1FDAA"
 
-	journal.Entries[1] = je
+	journal.Entries[je.File] = je
 	err := writeToGob(&journal, &wg)
 
 	if err != nil {
 		t.Error("logstream: write to journal failed.")
 	}
 	j, err := loadFromGob("testdir")
-	e := j.Entries[1]
+	e := j.Entries[je.File]
 	if err != nil {
 		t.Error("logstream: loading journal failed.")
 	}
-	if e.Ino != 10 {
+	if e.File != "/a/10" {
 		t.Error("logstream: loading journal failed, expected Ino value 10.")
 	}
 	if e.Byte_Offset != 10 {

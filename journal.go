@@ -17,7 +17,7 @@ type Register struct {
 // which keep track to file and last read position.
 type Journal struct {
 	Path    string
-	Entries map[uint64]JournalEntry
+	Entries map[string]JournalEntry
 }
 
 // add the any kind of persistance, implementation functions are defined in
@@ -40,7 +40,7 @@ func CreateJournal(basePath string, persist Persist, load Load) (chan JournalEnt
 		if _, err := os.Stat(journalFile); os.IsNotExist(err) {
 			//new journal
 			journal = &Journal{Path: journalFile,
-				Entries: make(map[uint64]JournalEntry),
+				Entries: make(map[string]JournalEntry),
 			}
 			fmt.Println("logstream: creating new journal at ", basePath)
 		} else {
@@ -53,13 +53,13 @@ func CreateJournal(basePath string, persist Persist, load Load) (chan JournalEnt
 			var sweep bool
 			select {
 			case entry = <-addChan:
-				journal.Entries[entry.Ino] = entry
+				journal.Entries[entry.File] = entry
 			case sweep = <-sweepChan:
 				if sweep {
 					wg.Add(1)
 					go persist(journal, &wg)
 					wg.Wait()
-					journal.Entries = make(map[uint64]JournalEntry)
+					journal.Entries = make(map[string]JournalEntry)
 				}
 			}
 		}
@@ -88,15 +88,16 @@ func CreateJournal(basePath string, persist Persist, load Load) (chan JournalEnt
 
 //add major & minor number
 type JournalEntry struct {
-	Ino         uint64 `json:"inode"`
+	//Ino         uint64 `json:"inode"`
+	File	string `json:"file"`
 	Byte_Offset int64  `json:"offset"`
 	Hash        string `json:"last_hash"`
 }
 
 var LOG_LENGTH_FOR_HASH = 500
 
-func NewJournalEntry(inode uint64, offset int64, hash string) *JournalEntry {
+func NewJournalEntry(file string, offset int64, hash string) *JournalEntry {
 	h := make([]byte, LOG_LENGTH_FOR_HASH)
 	copy(h, hash[:])
-	return &JournalEntry{Ino: inode, Byte_Offset: offset, Hash: string(h)}
+	return &JournalEntry{File: file, Byte_Offset: offset, Hash: string(h)}
 }
