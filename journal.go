@@ -16,34 +16,36 @@ type Register struct {
 // periodically to disk. Journal contains JournalEntry
 // which keep track to file and last read position.
 type Journal struct {
-	path    string
-	entries map[uint64]JournalEntry
+	Path    string
+	Entries map[uint64]JournalEntry
 }
 
 // add the any kind of persistance, implementation functions are defined in
 // file journal_persistance.go
-type Persist func(journal *Journal, waitGroup *sync.WaitGroup)
+type Persist func(journal *Journal, waitGroup *sync.WaitGroup) error
+type Load func(identifier string) (*Journal, error)
 
-var JOURNAL_ID = "lgs_jrnl.json"
+var JOURNAL_ID = "logstream.jrnl"
 
-func CreateJournal(basePath string, persist Persist) (chan JournalEntry, chan bool, error) {
+func CreateJournal(basePath string, persist Persist, load Load) (chan JournalEntry, chan bool, error) {
 	if basePath == "" {
 		return nil, nil, errors.New("logstream: Journal base path not specified!")
 	}
 	journalFile := filepath.Join(basePath, JOURNAL_ID)
-	file, file_err := os.OpenFile(journalFile, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0660)
-	if file_err != nil {
-		err_str := fmt.Errorf("logstream: Error opening logstream journal path: %s", file_err.Error())
-		return nil, nil, errors.New(err_str.Error())
-	}
-	defer file.Close()
 	addChan := make(chan JournalEntry, 50)
 	sweepChan := make(chan bool)
 
 	go func() {
-		//create the in-memory journal
-		journal := Journal{path: journalFile,
-			entries: make(map[uint64]JournalEntry),
+		var journal *Journal
+		if _, err := os.Stat(journalFile); os.IsNotExist(err) {
+			//new journal
+			journal = &Journal{Path: journalFile,
+				Entries: make(map[uint64]JournalEntry),
+			}
+			fmt.Println("logstream: creating new journal at ", basePath)
+		} else {
+			//load existing journal
+			journal, err = loadFromGob(basePath)
 		}
 		var wg sync.WaitGroup
 		for {
@@ -51,13 +53,13 @@ func CreateJournal(basePath string, persist Persist) (chan JournalEntry, chan bo
 			var sweep bool
 			select {
 			case entry = <-addChan:
-				journal.entries[entry.Ino] = entry
+				journal.Entries[entry.Ino] = entry
 			case sweep = <-sweepChan:
 				if sweep {
 					wg.Add(1)
-					go persist(&journal, &wg)
+					go persist(journal, &wg)
 					wg.Wait()
-					journal.entries = make(map[uint64]JournalEntry)
+					journal.Entries = make(map[uint64]JournalEntry)
 				}
 			}
 		}
