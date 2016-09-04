@@ -76,6 +76,21 @@ func TestJournalPersistance(t *testing.T) {
 	time.Sleep(time.Second)
 }
 
+func TestJournalNotNull(t *testing.T) {
+	a, _, err := CreateJournal("testdir", writeToGob, loadFromGob)
+	if err != nil {
+		t.Error("logstream: expecting a succesful journal creation.")
+	}
+	je := JournalEntry{}
+	je.File = "/a/b/a.f"
+	je.Byte_Offset = 10
+	je.Hash = "1FDAA"
+	a <- je
+	if journal == nil {
+		t.Error("logstream: JournalRef not initialized.")
+	}
+}
+
 func TestWriteAndLoadToAndFromGob(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)

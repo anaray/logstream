@@ -8,10 +8,6 @@ import (
 	"sync"
 )
 
-type Register struct {
-	journals []*Journal
-}
-
 // A Journal is initialized in-memory and persisted
 // periodically to disk. Journal contains JournalEntry
 // which keep track to file and last read position.
@@ -27,6 +23,8 @@ type Load func(identifier string) (*Journal, error)
 
 const JOURNAL_ID = "logstream.jrnl"
 
+var journal *Journal
+
 func CreateJournal(basePath string, persist Persist, load Load) (chan JournalEntry, chan bool, error) {
 	if basePath == "" {
 		return nil, nil, errors.New("logstream: Journal base path not specified!")
@@ -36,7 +34,7 @@ func CreateJournal(basePath string, persist Persist, load Load) (chan JournalEnt
 	sweepChan := make(chan bool)
 
 	go func() {
-		var journal *Journal
+		//var journal *Journal
 		if _, err := os.Stat(journalFile); os.IsNotExist(err) {
 			//new journal
 			journal = &Journal{Path: journalFile,
@@ -47,6 +45,7 @@ func CreateJournal(basePath string, persist Persist, load Load) (chan JournalEnt
 			//load existing journal
 			journal, err = loadFromGob(basePath)
 		}
+
 		var wg sync.WaitGroup
 		for {
 			var entry JournalEntry
