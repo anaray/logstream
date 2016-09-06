@@ -2,9 +2,9 @@ package logstream
 
 import (
 	"errors"
+	"hash/fnv"
 	"os"
 	"path/filepath"
-  "hash/fnv"
 )
 
 //given a base directory, files are filtered and returned
@@ -30,10 +30,10 @@ func getFiles(path, filterPattern string) ([]string, error) {
 	return logfiles, nil
 }
 
-// returns 32 bit hash, given a 256 byte content of a file, and 
+// returns 32 bit hash, given a 256 byte content of a file, and
 // this acts as a uniue identifier
 func getFileSignature(content []byte) uint32 {
-  h := fnv.New32a()
-  h.Write(content)
-  return h.Sum32()
+	h := fnv.New32a()
+	h.Write(content)
+	return h.Sum32()
 }
