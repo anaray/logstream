@@ -1,6 +1,7 @@
 package logstream
 
 import (
+	"os"
 	"testing"
 )
 
@@ -20,7 +21,8 @@ func TestGetFiles(t *testing.T) {
 }
 
 func TestGenerateFileSignature(t *testing.T) {
-	signature, _ := getFileSignature("testdir/logs/sdsc-http.txt")
+	f, _ := os.Open("testdir/logs/sdsc-http.txt")
+	signature, _ := getFileSignature(f)
 	if signature != 2782789897 {
 		t.Error("logstream: expected signature 2782789897 but received", signature)
 	}
