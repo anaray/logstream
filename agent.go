@@ -1,8 +1,8 @@
 package logstream
 
 import (
+	"fmt"
 	"time"
-  "fmt"
 )
 
 type Agent struct {
@@ -43,7 +43,7 @@ func gather(file string, timeout time.Duration, shutdown chan struct{}) {
 	}()
 	for {
 		select {
-		case  <- done:
+		case <-done:
 			fmt.Println("parsing completed !!!!")
 			return
 		case <-shutdown:
