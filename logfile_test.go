@@ -27,3 +27,7 @@ func TestGenerateFileSignature(t *testing.T) {
 		t.Error("logstream: expected signature 2782789897 but received", signature)
 	}
 }
+
+func TestGetFileMetaInfo(t *testing.T) {
+  
+}

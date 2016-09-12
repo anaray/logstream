@@ -8,6 +8,13 @@ import (
 	"time"
 )
 
+func parse(file string) error {
+  //f, err := os.Open(file)
+  //defer f.Close()
+  time.Sleep(20 * time.Second)
+  return nil
+}
+
 type LogFileMetaInfo struct {
 	signature uint32
 	size      int64
