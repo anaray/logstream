@@ -88,7 +88,8 @@ func CreateJournal(basePath string, persist Persist, load Load) (chan JournalEnt
 //add major & minor number
 type JournalEntry struct {
 	//Ino         uint64 `json:"inode"`
-	File	string `json:"file"`
+	File string `json:"file"`
+	//FingerPrint
 	Byte_Offset int64  `json:"offset"`
 	Hash        string `json:"last_hash"`
 }

@@ -6,13 +6,26 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+//	"bufio"
+"fmt"
 )
 
 func parse(file string) error {
   //f, err := os.Open(file)
   //defer f.Close()
-  time.Sleep(20 * time.Second)
+	fmt.Println("Parsing started file: ",file," at:", time.Now())
+  time.Sleep(40 * time.Second)
   return nil
+	/*f,err := os.Open(file)
+	if err != nil {
+    return err
+  }
+	defer f.Close()
+	scanner := bufio.NewScanner(file)
+  for scanner.Scan() {
+      line := scanner.Text()
+  }*/
+
 }
 
 type LogFileMetaInfo struct {
