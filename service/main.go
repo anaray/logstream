@@ -15,23 +15,31 @@ type Conf struct {
 	FilterPattern string `json:"filter_pattern"`
 	Interval      int64  `json:"interval"`
 	Timeout       int64  `json:"timeout"`
+	JournalPath   string `json:"journal_path"`
 }
 
 func main() {
+	logger := logstream.Logger(os.Stdout)
+	logger.Logf("Initializing Logstream: 0.1")
 	f := flag.String("conf", ".", "the configuration file")
 	flag.Parse()
 	c, err := ioutil.ReadFile(*f)
 	if err != nil {
-		panic("couldn't read file.")
+		panic(fmt.Sprintf("logstream: failed to read configuration file %s\n", *f))
 		os.Exit(1)
 	}
 	conf := Conf{}
 	json.Unmarshal(c, &conf)
-	fmt.Println(conf)
-
+	logger.Logf("Creating LogStream Agent ...")
+	logger.Logf("File Path: %s\n", conf.Path)
+	logger.Logf("Filter: %s\n", conf.FilterPattern)
+	logger.Logf("Gather Interval: %d\n", conf.Interval)
+	logger.Logf("Gather Timeout: %d\n", conf.Timeout)
+	logger.Logf("Journal Path: %s\n", conf.JournalPath)
 	agent := logstream.NewAgent(conf.Path,
 		conf.FilterPattern,
 		time.Duration(conf.Interval)*time.Second,
-		time.Duration(conf.Timeout)*time.Second)
+		time.Duration(conf.Timeout)*time.Second,
+		conf.JournalPath)
 	agent.Start()
 }

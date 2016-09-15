@@ -29,5 +29,5 @@ func TestGenerateFileSignature(t *testing.T) {
 }
 
 func TestGetFileMetaInfo(t *testing.T) {
-  
+
 }

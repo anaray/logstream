@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 // A Journal is initialized in-memory and persisted
@@ -13,7 +14,14 @@ import (
 // which keep track to file and last read position.
 type Journal struct {
 	Path    string
-	Entries map[string]JournalEntry
+	Entries map[uint32]JournalEntry
+	lock  *sync.RWMutex
+}
+
+func NewJournal(path string, persist Persist, load Load) (*Journal, error) {
+	if path = "" {
+			return nil, errors.New("logstream: Journal base path not specified!")
+	}
 }
 
 // add the any kind of persistance, implementation functions are defined in
@@ -23,27 +31,32 @@ type Load func(identifier string) (*Journal, error)
 
 const JOURNAL_ID = "logstream.jrnl"
 
-var journal *Journal
+//var journal *Journal
 
-func CreateJournal(basePath string, persist Persist, load Load) (chan JournalEntry, chan bool, error) {
+func CreateJournal(basePath string, persist Persist, load Load) (*Journal, chan JournalEntry, chan bool, error) {
 	if basePath == "" {
-		return nil, nil, errors.New("logstream: Journal base path not specified!")
+		return nil, nil, nil, errors.New("logstream: Journal base path not specified!")
 	}
+	var journal *Journal
 	journalFile := filepath.Join(basePath, JOURNAL_ID)
 	addChan := make(chan JournalEntry, 50)
 	sweepChan := make(chan bool)
+	errorChan := make(chan error)
 
 	go func() {
 		//var journal *Journal
 		if _, err := os.Stat(journalFile); os.IsNotExist(err) {
 			//new journal
 			journal = &Journal{Path: journalFile,
-				Entries: make(map[string]JournalEntry),
+				Entries: make(map[uint32]JournalEntry),
 			}
 			fmt.Println("logstream: creating new journal at ", basePath)
 		} else {
 			//load existing journal
 			journal, err = loadFromGob(basePath)
+			if err != nil {
+				errorChan <- err
+			}
 		}
 
 		var wg sync.WaitGroup
@@ -52,51 +65,33 @@ func CreateJournal(basePath string, persist Persist, load Load) (chan JournalEnt
 			var sweep bool
 			select {
 			case entry = <-addChan:
-				journal.Entries[entry.File] = entry
+				journal.Entries[entry.Signature] = entry
 			case sweep = <-sweepChan:
-				if sweep {
+				//sweep only if journal has some fresh entries
+				if sweep && len(journal.Entries) > 0 {
 					wg.Add(1)
 					go persist(journal, &wg)
 					wg.Wait()
-					journal.Entries = make(map[string]JournalEntry)
+					journal.Entries = make(map[uint32]JournalEntry)
 				}
 			}
 		}
 	}()
-	return addChan, sweepChan, nil
+	return journal, addChan, sweepChan, nil
 }
 
-/*func (journal *Journal) Write(entry *JournalEntry) error {
-	if entry != nil {
-		e, err := json.Marshal(entry)
-		if err != nil {
-			return err
-		}
-		file, file_err := os.OpenFile(journal.path, os.O_APPEND|os.O_WRONLY, 0660)
-		if file_err != nil {
-			err_str := fmt.Errorf("logstream: Error opening logstream journal path: %s", file_err.Error())
-			return errors.New(err_str.Error())
-		}
-		defer file.Close()
-		if _, err = file.Write(append(e, '\n')); err != nil {
-			return err
-		}
-	}
-	return nil
-}*/
-
-//add major & minor number
 type JournalEntry struct {
-	//Ino         uint64 `json:"inode"`
-	File string `json:"file"`
-	//FingerPrint
-	Byte_Offset int64  `json:"offset"`
-	Hash        string `json:"last_hash"`
+	Signature   uint32    `json:"file_signature"`
+	File        string    `json:"file_name"`
+	Size        int64     `json:"file_size"`
+	ModAt       time.Time `json:"file_modified_at"`
+	Byte_Offset int64     `json:"offset"`
+	Hash        string    `json:"last_hash"`
 }
 
 var LOG_LENGTH_FOR_HASH = 500
 
-func NewJournalEntry(file string, offset int64, hash string) *JournalEntry {
+func NewJournalEntry(signature uint32, file string, size int64, modAt time.Time, offset int64, hash string) *JournalEntry {
 	h := make([]byte, LOG_LENGTH_FOR_HASH)
 	copy(h, hash[:])
 	return &JournalEntry{File: file, Byte_Offset: offset, Hash: string(h)}
