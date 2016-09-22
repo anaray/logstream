@@ -15,25 +15,67 @@ import (
 type Journal struct {
 	Path    string
 	Entries map[uint32]JournalEntry
-	lock  *sync.RWMutex
+	lock    *sync.RWMutex
 }
-
-func NewJournal(path string, persist Persist, load Load) (*Journal, error) {
-	if path = "" {
-			return nil, errors.New("logstream: Journal base path not specified!")
-	}
-}
-
-// add the any kind of persistance, implementation functions are defined in
-// file journal_persistance.go
-type Persist func(journal *Journal, waitGroup *sync.WaitGroup) error
-type Load func(identifier string) (*Journal, error)
 
 const JOURNAL_ID = "logstream.jrnl"
 
+// add the any kind of persistance, implementation functions are defined in
+// file journal_persistance.go
+type Persist func(entry *Journal, waitGroup *sync.WaitGroup) error
+type Load func(identifier string) (*Journal, error)
+
+func GetJournal(path string, loadJournal Load) (*Journal, error) {
+	if path == "" {
+		return nil, errors.New("logstream: Journal base path not specified!")
+	}
+	journalFile := filepath.Join(path, JOURNAL_ID)
+	var journal *Journal
+	if _, err := os.Stat(journalFile); os.IsNotExist(err) {
+		//new journal
+		journal = &Journal{Path: journalFile,
+			Entries: make(map[uint32]JournalEntry),
+			lock:    new(sync.RWMutex),
+		}
+		fmt.Println("logstream: creating new journal at ", path)
+	} else {
+		//load existing journal
+		journal, err := loadJournal(path)
+		if err != nil {
+			return nil, err
+		}
+		journal.lock = new(sync.RWMutex)
+	}
+	return journal, nil
+}
+
+func (j *Journal) Add(entry JournalEntry) {
+	j.lock.Lock()
+	j.Entries[entry.Signature] = entry
+	defer j.lock.Unlock()
+}
+
+func (j *Journal) Get(key uint32) JournalEntry {
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+	return j.Entries[key]
+}
+
+func (j *Journal) Sweep(persist Persist) {
+	var wg sync.WaitGroup
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	if len(j.Entries) > 0 {
+		wg.Add(1)
+		go persist(j, &wg)
+		wg.Wait()
+		j.Entries = make(map[uint32]JournalEntry)
+	}
+}
+
 //var journal *Journal
 
-func CreateJournal(basePath string, persist Persist, load Load) (*Journal, chan JournalEntry, chan bool, error) {
+/*func CreateJournal(basePath string, persist Persist, load Load) (*Journal, chan JournalEntry, chan bool, error) {
 	if basePath == "" {
 		return nil, nil, nil, errors.New("logstream: Journal base path not specified!")
 	}
@@ -78,7 +120,7 @@ func CreateJournal(basePath string, persist Persist, load Load) (*Journal, chan 
 		}
 	}()
 	return journal, addChan, sweepChan, nil
-}
+}*/
 
 type JournalEntry struct {
 	Signature   uint32    `json:"file_signature"`

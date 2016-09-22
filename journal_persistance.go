@@ -50,7 +50,7 @@ func writeToGob(journal *Journal, wg *sync.WaitGroup) error {
 	return nil
 }
 
-func loadFromGob(basePath string) (journal *Journal, err error) {
+func loadFromGob(basePath string) (*Journal, error) {
 	journalFile := filepath.Join(basePath, JOURNAL_ID)
 	f, err := os.Open(journalFile)
 	if err != nil {

@@ -8,39 +8,29 @@ import (
 	"time"
 	//	"bufio"
 	"fmt"
-	"sync"
 )
 
-func parse(file string, control chan struct{}) error {
-	//f, err := os.Open(file)
-	//defer f.Close()
-	//fmt.Println("Parsing started file: ",file," at:", time.Now())
-	//time.Sleep(40 * time.Second)
-	//return nil
-	/*f,err := os.Open(file)
-		if err != nil {
-	    return err
-	  }
-		defer f.Close()
-		scanner := bufio.NewScanner(file)
-	  for scanner.Scan() {
-	      line := scanner.Text()
-	  }*/
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
+func parse(file string, control chan struct{}) int64 {
+	//check the control channel
+	//Open the file
+	//os.Open(file)
+	defer func() {
+		fmt.Println("Tear down ...")
+	}()
+	fmt.Println("Parsing started file: ", file, " at:", time.Now())
+L:
+	for {
 		select {
 		case <-control:
-			fmt.Println("quit")
+			fmt.Println("its time break ...")
+			break L
 		default:
-			fmt.Println("Parsing started file: ", file, " at:", time.Now())
-			time.Sleep(40 * time.Second)
+			//fmt.Println("Im doing something here !!!!!")
+
 		}
-	}()
-	wg.Wait()
-	return nil
+	}
+	fmt.Println("RETUENNNNIG`")
+	return int64(1)
 }
 
 type LogFileMetaInfo struct {
