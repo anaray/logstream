@@ -2,6 +2,7 @@ package logstream
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 )
 
@@ -11,16 +12,18 @@ type Agent struct {
 	shutdown       chan struct{}
 	basePath       string
 	filterPattern  string
+	regexDelim     string
 	journalPath    string
 }
 
-func NewAgent(basePath string, filterPattern string, interval, timeout time.Duration, journalPath string) *Agent {
+func NewAgent(basePath, filterPattern, regexDelim string, interval, timeout time.Duration, journalPath string) *Agent {
 	agent := Agent{
 		gatherInterval: time.Duration(interval),
 		gatherTimeout:  time.Duration(timeout),
 		shutdown:       make(chan struct{}),
 		basePath:       basePath,
 		filterPattern:  filterPattern,
+		regexDelim:     regexDelim,
 		journalPath:    journalPath,
 	}
 	return &agent
@@ -34,7 +37,8 @@ func (agent *Agent) Start() {
 		panic(err)
 	}
 	fmt.Println("Got a Journal:", journal)
-
+	//keep the log file delim marker regex pattern compiled
+	delim_regex := regexp.MustCompile(agent.regexDelim)
 	ticker := time.NewTicker(agent.gatherInterval)
 	defer ticker.Stop()
 	for {
@@ -44,17 +48,23 @@ func (agent *Agent) Start() {
 		//files. It is equally divided among the files
 		timeOutInSeconds := agent.gatherTimeout.Seconds() / float64(len(files))
 		for _, file := range files {
-			/*	meta, err := getFileMetaInfo(file)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-				f := meta.signature
-				fmt.Println("File Signature :", f)
-				je := journal.Get(f)
-				fmt.Println("Entry :", je)*/
+			/*meta, err := getFileMetaInfo(file)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			f := meta.signature
+			fmt.Println("File Signature :", f)
+			je, ok := journal.Get(f)
+			//entry is already there in the journal
+			if ok {
+
+			}else{
+
+			}
+			fmt.Println("Entry :", je)*/
 			fmt.Println("Timeout seconds :", timeOutInSeconds)
-			gather(file, time.Duration(timeOutInSeconds)*time.Second, agent.shutdown)
+			gather(file, delim_regex, time.Duration(timeOutInSeconds)*time.Second, agent.shutdown, journal)
 			// write to details to journal for this entry in a goroutine
 		}
 		select {
@@ -67,7 +77,7 @@ func (agent *Agent) Start() {
 	}
 }
 
-func gather(file string, timeout time.Duration, shutdown chan struct{}) {
+func gather(file string, delim *regexp.Regexp, timeout time.Duration, shutdown chan struct{}, journal *Journal) {
 	//done := make(chan error)
 	done := make(chan int64)
 	control := make(chan struct{}, 1)
@@ -77,7 +87,7 @@ func gather(file string, timeout time.Duration, shutdown chan struct{}) {
 
 	go func() {
 		t0 = time.Now()
-		done <- parse(file, control)
+		done <- parse(file, delim, control, journal)
 	}()
 
 	for {

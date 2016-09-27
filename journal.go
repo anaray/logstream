@@ -55,10 +55,11 @@ func (j *Journal) Add(entry JournalEntry) {
 	defer j.lock.Unlock()
 }
 
-func (j *Journal) Get(key uint32) JournalEntry {
+func (j *Journal) Get(key uint32) (JournalEntry, bool) {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
-	return j.Entries[key]
+	e, ok := j.Entries[key]
+	return e, ok
 }
 
 func (j *Journal) Sweep(persist Persist) {
