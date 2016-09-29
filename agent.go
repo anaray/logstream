@@ -32,46 +32,29 @@ func NewAgent(basePath, filterPattern, regexDelim string, interval, timeout time
 func (agent *Agent) Start() {
 	//initialize a journal, with gob to serialize to disk
 	//journal, journal_chan, sweep_chan, err := CreateJournal(agent.journalPath, writeToGob, loadFromGob)
-	journal, err := GetJournal(agent.journalPath, loadFromGob)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Got a Journal:", journal)
 	//keep the log file delim marker regex pattern compiled
 	delim_regex := regexp.MustCompile(agent.regexDelim)
 	ticker := time.NewTicker(agent.gatherInterval)
 	defer ticker.Stop()
 	for {
+		journal, err := GetJournal(agent.journalPath, loadFromGob)
+		if err != nil {
+			panic(err)
+		}
 		files, _ := getFiles(agent.basePath, agent.filterPattern)
 		fmt.Println("Selected Files :", files)
 		//timeout is a optimistic way to divide the parsing among the
 		//files. It is equally divided among the files
 		timeOutInSeconds := agent.gatherTimeout.Seconds() / float64(len(files))
 		for _, file := range files {
-			/*meta, err := getFileMetaInfo(file)
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-			f := meta.signature
-			fmt.Println("File Signature :", f)
-			je, ok := journal.Get(f)
-			//entry is already there in the journal
-			if ok {
-
-			}else{
-
-			}
-			fmt.Println("Entry :", je)*/
-			fmt.Println("Timeout seconds :", timeOutInSeconds)
 			gather(file, delim_regex, time.Duration(timeOutInSeconds)*time.Second, agent.shutdown, journal)
 			// write to details to journal for this entry in a goroutine
 		}
+		journal.Sweep(writeToGob)
 		select {
 		case <-agent.shutdown:
 			return
 		case <-ticker.C:
-			fmt.Println("Calling Gather .....", time.Now())
 			continue
 		}
 	}
@@ -92,9 +75,9 @@ func gather(file string, delim *regexp.Regexp, timeout time.Duration, shutdown c
 
 	for {
 		select {
-		case loc := <-done:
+		case  <-done:
 			//update the file seek pos
-			fmt.Println("parsing completed !!!! file:", file, " location: ", loc, " time:", time.Now())
+			fmt.Println("parsing completed !!!! file:", file )
 			return
 			break
 		case <-shutdown:
@@ -113,5 +96,4 @@ func gather(file string, delim *regexp.Regexp, timeout time.Duration, shutdown c
 		}
 	}
 	return
-
 }

@@ -12,6 +12,10 @@ import (
 )
 
 func parse(file string, reg *regexp.Regexp, control chan struct{}, journal *Journal) int64 {
+	//pointer to the file location
+	var seekP int64
+	var log string
+	//var lastLine string
 	//check the control channel
 	//Open the file
 	f, err := os.Open(file)
@@ -19,10 +23,23 @@ func parse(file string, reg *regexp.Regexp, control chan struct{}, journal *Jour
 		return -1
 	}
 	defer func() {
-		fmt.Println("Tear down ...")
 		//create a journal entry and
 		//add to the journal
-		//NewJournalEntry()
+		meta, err := getFileMetaInfo(file)
+		if err == nil {
+			journalEntry := JournalEntry{
+				Signature:   meta.signature,
+				File:        file,
+				Size:        meta.size,
+				ModAt:       meta.modAt,
+				Byte_Offset: seekP,
+				//Hash:        lastLine,
+			}
+			//fmt.Println(lastLine)
+			//entry := NewJournalEntry(meta.signature, file,meta.size, meta.modAt, seekP,lastLine)
+			//fmt.Println("ENTRY :", journalEntry)
+			journal.Add(journalEntry)
+		}
 		f.Close()
 	}()
 
@@ -32,46 +49,33 @@ func parse(file string, reg *regexp.Regexp, control chan struct{}, journal *Jour
 		return -1
 	}
 	signature := meta.signature
-	fmt.Println("File Signature :", signature)
 	je, exists := journal.Get(signature)
 
-	//pointer to the file location
-	var seekP int64
 	//entry is already there in the journal
 	if exists {
 		seekP = je.Byte_Offset
 	}
-	fmt.Println("Entry :", seekP)
 	//get
 	//seek the correct location in the file
 	f.Seek(seekP, 0)
 	logscanner := getLogScanner(f, &seekP, reg)
-	//
-	/*scan := logScanner.Scan()
-	fmt.Println("Scan :", scan)
-	if scan == false {
-		return -1
-	}*/
-	//fmt.Println(">>1 :",logScanner.Text(), "Pos :", seekP)
-
 	fmt.Println("Parsing started file: ", file, " at:", time.Now())
 L:
 	for {
 		select {
 		case <-control:
-			fmt.Println("its time break ...")
 			break L
 		default:
 			more := logscanner.Scan()
 			if more {
-				log := logscanner.Text()
-				fmt.Println("LOG :", log)
+				log = logscanner.Text()
+				fmt.Println(" Parsed Log Entry :", log)
 			} else {
+				//lastLine = log
 				break L
 			}
 		}
 	}
-	fmt.Println("RETUENNNNIG`")
 	return int64(0)
 }
 

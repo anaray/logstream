@@ -2,7 +2,6 @@ package logstream
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -37,10 +36,10 @@ func GetJournal(path string, loadJournal Load) (*Journal, error) {
 			Entries: make(map[uint32]JournalEntry),
 			lock:    new(sync.RWMutex),
 		}
-		fmt.Println("logstream: creating new journal at ", path)
 	} else {
 		//load existing journal
-		journal, err := loadJournal(path)
+		journal, err = loadJournal(path)
+
 		if err != nil {
 			return nil, err
 		}
@@ -134,8 +133,8 @@ type JournalEntry struct {
 
 var LOG_LENGTH_FOR_HASH = 500
 
-func NewJournalEntry(signature uint32, file string, size int64, modAt time.Time, offset int64, hash string) *JournalEntry {
+func NewJournalEntry(signature uint32, file string, size int64, modAt time.Time, offset int64, hash string) JournalEntry {
 	h := make([]byte, LOG_LENGTH_FOR_HASH)
 	copy(h, hash[:])
-	return &JournalEntry{File: file, Byte_Offset: offset, Hash: string(h)}
+	return JournalEntry{File: file, Byte_Offset: offset, Hash: string(h)}
 }
