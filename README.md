@@ -22,4 +22,4 @@ configuration json contains the necessary configuration for logstream and config
 * base_directory = directory where files to be read are located
 * filter_pattern = regex file filters
 * log_delim_regex = regular expression pattern to identify each log entries.
-* interval = how often log files are harvested.
+* interval = how often log files are harvested (seconds).
