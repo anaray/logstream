@@ -69,7 +69,7 @@ L:
 			more := logscanner.Scan()
 			if more {
 				log = logscanner.Text()
-				fmt.Println(" Parsed Log Entry :", log)
+				fmt.Println(" Parsed Log Entry :=>", log)
 			} else {
 				//lastLine = log
 				break L
@@ -80,6 +80,44 @@ L:
 }
 
 func getLogScanner(file *os.File, seekPos *int64, re *regexp.Regexp) *bufio.Scanner {
+	scanner := bufio.NewScanner(file)
+	logSplitter := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		if atEOF && len(data) == 0 {
+			return 0, nil, nil
+		}
+
+		if len(data) > 0 {
+			start := re.FindAllIndex(data, 1)
+			if len(start) > 0 {
+				first := start[0]
+				// the pattern is not at start
+				if first[0] != 0 {
+					*seekPos = *seekPos + int64(first[0])
+					return first[0], data[:first[0]], nil
+				} else {
+					end := re.FindAllIndex(data[first[1]:], 1)
+					if len(end) > 0 {
+						for _, second := range end {
+							if len(second) > 0 {
+								adv := second[0] + first[1]
+								*seekPos = *seekPos + int64(adv)
+								return adv, data[0 : second[0]+first[1]], nil
+							}
+						}
+					} else {
+						*seekPos = *seekPos + int64(len(data))
+						return len(data), data[0:], nil
+					}
+				}
+			}
+		}
+		return 0, nil, nil
+	}
+	scanner.Split(logSplitter)
+	return scanner
+}
+
+/*func getLogScanner(file *os.File, seekPos *int64, re *regexp.Regexp) *bufio.Scanner {
 	scanner := bufio.NewScanner(file)
 	logSplitter := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
 		if atEOF && len(data) == 0 {
@@ -116,7 +154,7 @@ func getLogScanner(file *os.File, seekPos *int64, re *regexp.Regexp) *bufio.Scan
 	}
 	scanner.Split(logSplitter)
 	return scanner
-}
+}*/
 
 type LogFileMetaInfo struct {
 	signature uint32

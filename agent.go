@@ -75,9 +75,9 @@ func gather(file string, delim *regexp.Regexp, timeout time.Duration, shutdown c
 
 	for {
 		select {
-		case  <-done:
+		case <-done:
 			//update the file seek pos
-			fmt.Println("parsing completed !!!! file:", file )
+			fmt.Println("parsing completed !!!! file:", file)
 			return
 			break
 		case <-shutdown:
