@@ -8,6 +8,7 @@ import (
 	"logstream"
 	"os"
 	"time"
+	"runtime"
 )
 
 type Conf struct {
@@ -17,6 +18,10 @@ type Conf struct {
 	Interval      int64  `json:"interval"`
 	Timeout       int64  `json:"timeout"`
 	JournalPath   string `json:"journal_path"`
+}
+
+func init() {
+  runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
 func main() {
