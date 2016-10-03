@@ -18,8 +18,14 @@ configuration json contains the necessary configuration for logstream and config
 }
 ```
 
-* journal_path = a file stored in disk to maintain file read position and other meta-data like size, modified_at etc
-* base_directory = directory where files to be read are located
-* filter_pattern = regex file filters
+* journal_path = a file stored in disk to maintain file read position and other meta-data like size, modified_at etc.
+* base_directory = directory where files to be read are located.
+* filter_pattern = regex file filters.
 * log_delim_regex = regular expression pattern to identify each log entries.
 * interval = how often log files are harvested (seconds).
+
+Build:
+Create a golang project. https://golang.org/doc/code.html
+go get github.com/anaray/logstream/
+cd $GOPATH/src/logstream/
+./build.sh - it creates executable logstream_<OS>_<ARCH>
