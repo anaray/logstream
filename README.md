@@ -25,7 +25,9 @@ configuration json contains the necessary configuration for logstream and config
 * interval = how often log files are harvested (seconds).
 
 Build:
+```
 Create a golang project. https://golang.org/doc/code.html
 go get github.com/anaray/logstream/
 cd $GOPATH/src/logstream/
 ./build.sh - it creates executable logstream_<OS>_<ARCH>
+```
