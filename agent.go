@@ -13,10 +13,11 @@ type Agent struct {
 	basePath       string
 	filterPattern  string
 	regexDelim     string
+	logType				 string
 	journalPath    string
 }
 
-func NewAgent(basePath, filterPattern, regexDelim string, interval, timeout time.Duration, journalPath string) *Agent {
+func NewAgent(basePath, filterPattern, regexDelim, logType string, interval, timeout time.Duration, journalPath string) *Agent {
 	agent := Agent{
 		gatherInterval: time.Duration(interval),
 		gatherTimeout:  time.Duration(timeout),
@@ -24,6 +25,7 @@ func NewAgent(basePath, filterPattern, regexDelim string, interval, timeout time
 		basePath:       basePath,
 		filterPattern:  filterPattern,
 		regexDelim:     regexDelim,
+		logType: logType,
 		journalPath:    journalPath,
 	}
 	return &agent

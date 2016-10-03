@@ -15,6 +15,7 @@ type Conf struct {
 	Path          string `json:"base_directory"`
 	FilterPattern string `json:"filter_pattern"`
 	LogDelimRegex string `json:"log_delim_regex"`
+	LogType		    string `json:"log_type"`
 	Interval      int64  `json:"interval"`
 	Timeout       int64  `json:"timeout"`
 	JournalPath   string `json:"journal_path"`
@@ -39,6 +40,7 @@ func main() {
 	logger.Logf("Creating LogStream Agent ...")
 	logger.Logf("File Path: %s\n", conf.Path)
 	logger.Logf("Filter: %s\n", conf.FilterPattern)
+	logger.Logf("Log Type: %s\n", conf.LogType)
 	logger.Logf("Log Delim Regex: %s\n", conf.LogDelimRegex)
 	logger.Logf("Gather Interval: %d\n", conf.Interval)
 	logger.Logf("Gather Timeout: %d\n", conf.Timeout)
@@ -46,6 +48,7 @@ func main() {
 	agent := logstream.NewAgent(conf.Path,
 		conf.FilterPattern,
 		conf.LogDelimRegex,
+		conf.LogType,
 		time.Duration(conf.Interval)*time.Second,
 		time.Duration(conf.Timeout)*time.Second,
 		conf.JournalPath)
