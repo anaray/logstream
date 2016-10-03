@@ -15,6 +15,7 @@ configuration json contains the necessary configuration for logstream and config
   "base_directory" : "/var/log/",
   "filter_pattern" : "displaypolicyd.log",
   "log_delim_regex" : "u>\\d*",
+  "log_type" : "displaypolicyd",
   "interval" : 60
 }
 ```
@@ -23,6 +24,7 @@ configuration json contains the necessary configuration for logstream and config
 * base_directory = directory where files to be read are located.
 * filter_pattern = regex file filters.
 * log_delim_regex = regular expression pattern to identify each log entries.
+* log_type = a textual description of type/kind of the logfile. example access, application etc.
 * interval = how often log files are harvested (seconds).
 
 Build:
