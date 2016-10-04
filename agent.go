@@ -10,6 +10,7 @@ type Agent struct {
 	gatherInterval time.Duration
 	gatherTimeout  time.Duration
 	shutdown       chan struct{}
+	output      	 chan Result
 	basePath       string
 	filterPattern  string
 	regexDelim     string
@@ -17,11 +18,20 @@ type Agent struct {
 	journalPath    string
 }
 
+type Result struct {
+		File string `json:"file"`
+		Log string `json:"file"`
+		Type string `json:"file"`
+		ParsedAt time.Time `json:"file"`
+		MetaInfo map[string]string `json:"meta_info"`
+}
+
 func NewAgent(basePath, filterPattern, regexDelim, logType string, interval, timeout time.Duration, journalPath string) *Agent {
 	agent := Agent{
 		gatherInterval: time.Duration(interval),
 		gatherTimeout:  time.Duration(timeout),
 		shutdown:       make(chan struct{}),
+		output:       make(chan Result),
 		basePath:       basePath,
 		filterPattern:  filterPattern,
 		regexDelim:     regexDelim,
@@ -93,8 +103,6 @@ func gather(file string, delim *regexp.Regexp, timeout time.Duration, shutdown c
 			control <- s
 			t1 := time.Now()
 			fmt.Printf("The call took %v to run.\n", t1.Sub(t0))
-			//break
-			//return
 		}
 	}
 	return

@@ -52,6 +52,5 @@ func main() {
 		time.Duration(conf.Interval)*time.Second,
 		time.Duration(conf.Timeout)*time.Second,
 		conf.JournalPath)
-	//create
 	agent.Start()
 }

@@ -35,9 +35,6 @@ func parse(file string, reg *regexp.Regexp, control chan struct{}, journal *Jour
 				Byte_Offset: seekP,
 				//Hash:        lastLine,
 			}
-			//fmt.Println(lastLine)
-			//entry := NewJournalEntry(meta.signature, file,meta.size, meta.modAt, seekP,lastLine)
-			//fmt.Println("ENTRY :", journalEntry)
 			journal.Add(journalEntry)
 		}
 		f.Close()
@@ -71,7 +68,6 @@ L:
 				log = logscanner.Text()
 				fmt.Println(" Parsed Log Entry :=>", log)
 			} else {
-				//lastLine = log
 				break L
 			}
 		}
@@ -116,45 +112,6 @@ func getLogScanner(file *os.File, seekPos *int64, re *regexp.Regexp) *bufio.Scan
 	scanner.Split(logSplitter)
 	return scanner
 }
-
-/*func getLogScanner(file *os.File, seekPos *int64, re *regexp.Regexp) *bufio.Scanner {
-	scanner := bufio.NewScanner(file)
-	logSplitter := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
-		if atEOF && len(data) == 0 {
-			return 0, nil, nil
-		}
-		if len(data) > 0 {
-			d := string(data)
-			start := re.FindStringIndex(d)
-			if len(start) == 0 {
-				return 0, nil, errors.New("logstream: regular expression failed to match :start, exp:" + re.String() + " file:" + file.Name())
-			}
-			end := re.FindStringIndex(string(d[start[1]+1:]))
-
-			//it can be the last line
-			if len(start) == 2 && len(end) == 0 {
-				*seekPos = *seekPos + int64(len(start))
-				return len(data), data[start[0]:], nil
-			}
-			if len(end) == 0 {
-				return 0, nil, errors.New("logstream: regular expression failed to match :end, exp:" + re.String() + " file:" + file.Name())
-			}
-			if len(start) == 2 && len(end) == 2 {
-				ad := end[1] + 1
-				lastByte := data[ad-1 : ad]
-				if rune(lastByte[0]) == '\n' {
-					ad = ad - 1
-				}
-				t := data[start[0]:ad]
-				*seekPos = *seekPos + int64(ad)
-				return ad, t, nil
-			}
-		}
-		return 0, nil, nil
-	}
-	scanner.Split(logSplitter)
-	return scanner
-}*/
 
 type LogFileMetaInfo struct {
 	signature uint32
