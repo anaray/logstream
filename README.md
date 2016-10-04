@@ -1,6 +1,7 @@
 # logstream 
 Agent for Log Harvesting 
-status: work in progress
+
+Status: work in progress
 
 Logstream is a light weight agent for parsing and moving the logs from the source to any configured destination. 
 
