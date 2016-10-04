@@ -10,7 +10,7 @@ type Agent struct {
 	gatherInterval time.Duration
 	gatherTimeout  time.Duration
 	shutdown       chan struct{}
-	output         chan Result
+	Output         chan Result
 	basePath       string
 	filterPattern  string
 	regexDelim     string
@@ -26,12 +26,14 @@ type Result struct {
 	MetaInfo map[string]string `json:"meta_info"`
 }
 
+const OUTPUT_LEN = 256
+
 func NewAgent(basePath, filterPattern, regexDelim, logType string, interval, timeout time.Duration, journalPath string) *Agent {
 	agent := Agent{
 		gatherInterval: time.Duration(interval),
 		gatherTimeout:  time.Duration(timeout),
 		shutdown:       make(chan struct{}),
-		output:         make(chan Result),
+		Output:         make(chan Result, OUTPUT_LEN),
 		basePath:       basePath,
 		filterPattern:  filterPattern,
 		regexDelim:     regexDelim,
@@ -59,7 +61,7 @@ func (agent *Agent) Start() {
 		//files. It is equally divided among the files
 		timeOutInSeconds := agent.gatherTimeout.Seconds() / float64(len(files))
 		for _, file := range files {
-			gather(file, delim_regex, time.Duration(timeOutInSeconds)*time.Second, agent.shutdown, journal)
+			gather(file, delim_regex, agent.Output, agent.logType, time.Duration(timeOutInSeconds)*time.Second, agent.shutdown, journal)
 			// write to details to journal for this entry in a goroutine
 		}
 		journal.Sweep(writeToGob)
@@ -72,7 +74,7 @@ func (agent *Agent) Start() {
 	}
 }
 
-func gather(file string, delim *regexp.Regexp, timeout time.Duration, shutdown chan struct{}, journal *Journal) {
+func gather(file string, delim *regexp.Regexp, output chan Result, logType string, timeout time.Duration, shutdown chan struct{}, journal *Journal) {
 	//done := make(chan error)
 	done := make(chan int64)
 	control := make(chan struct{}, 1)
@@ -82,7 +84,7 @@ func gather(file string, delim *regexp.Regexp, timeout time.Duration, shutdown c
 
 	go func() {
 		t0 = time.Now()
-		done <- parse(file, delim, control, journal)
+		done <- parse(file, delim, logType, output, control, journal)
 	}()
 
 	for {

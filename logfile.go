@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func parse(file string, reg *regexp.Regexp, control chan struct{}, journal *Journal) int64 {
+func parse(file string, reg *regexp.Regexp, logType string, output chan Result, control chan struct{}, journal *Journal) int64 {
 	//pointer to the file location
 	var seekP int64
 	var log string
@@ -66,7 +66,13 @@ L:
 			more := logscanner.Scan()
 			if more {
 				log = logscanner.Text()
-				fmt.Println(" Parsed Log Entry :=>", log)
+				r := Result{
+					File:     file,
+					Log:      log,
+					Type:     logType,
+					ParsedAt: time.Now(),
+				}
+				output <- r
 			} else {
 				break L
 			}

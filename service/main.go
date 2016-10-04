@@ -8,22 +8,22 @@ import (
 	"logstream"
 	"os"
 	"time"
-	"runtime"
+	//"runtime"
 )
 
 type Conf struct {
 	Path          string `json:"base_directory"`
 	FilterPattern string `json:"filter_pattern"`
 	LogDelimRegex string `json:"log_delim_regex"`
-	LogType		    string `json:"log_type"`
+	LogType       string `json:"log_type"`
 	Interval      int64  `json:"interval"`
 	Timeout       int64  `json:"timeout"`
 	JournalPath   string `json:"journal_path"`
 }
 
-func init() {
+/*func init() {
   runtime.GOMAXPROCS(runtime.NumCPU())
-}
+}*/
 
 func main() {
 	logger := logstream.Logger(os.Stdout)
@@ -52,5 +52,11 @@ func main() {
 		time.Duration(conf.Interval)*time.Second,
 		time.Duration(conf.Timeout)*time.Second,
 		conf.JournalPath)
+	go func() {
+		for {
+			r := <-agent.Output
+			fmt.Println("Log entry :", r)
+		}
+	}()
 	agent.Start()
 }
