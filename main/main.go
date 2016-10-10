@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"logstream"
+	"github.com/anaray/logstream/agent"
 	"os"
 	"time"
 	//"runtime"

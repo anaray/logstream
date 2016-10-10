@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-rm -f ../../bin/service_*
+#rm -f ../../bin/service_*
 TARGET=$1
 go get github.com/mitchellh/gox
 if [ -z $target ]; then
-  gox -osarch=$TARGET -output "../../bin/logstream_{{.OS}}_{{.Arch}}" logstream/service
+  gox -osarch=$TARGET -output "$GOPATH/bin/logstream_{{.OS}}_{{.Arch}}" github.com/anaray/logstream/main
 fi
