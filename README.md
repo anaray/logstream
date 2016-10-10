@@ -32,6 +32,8 @@ Build:
 ```
 Create a golang project. https://golang.org/doc/code.html
 go get github.com/anaray/logstream/
-cd $GOPATH/src/logstream/
+Install glide - curl https://glide.sh/get | sh
+cd $GOPATH/src/github.com/anaray/logstream
 ./build.sh - it creates executable logstream_<OS>_<ARCH>
+
 ```
