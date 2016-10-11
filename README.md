@@ -5,7 +5,7 @@ Status: work in progress
 
 Logstream is a light weight agent for parsing and moving the logs from the source to any configured destination. 
 
-```
+```sh
 Usage:
 logstream -conf=my_conf.json
 
@@ -29,7 +29,7 @@ configuration json contains the necessary configuration for logstream and config
 * interval = how often log files are harvested (seconds).
 
 Build:
-```
+```sh
 Create a golang project. https://golang.org/doc/code.html
 go get github.com/anaray/logstream/
 Install glide - curl https://glide.sh/get | sh
