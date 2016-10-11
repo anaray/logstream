@@ -1,0 +1,8 @@
+hash: 4c3abd6ab19460aea1e0cc697a37f34506809912e35c0e9322a7f70a2be19693
+updated: 2016-10-10T08:46:02.976887115-07:00
+imports:
+- name: github.com/BurntSushi/toml
+  version: bbd5bb678321a0d6e58f1099321dfa73391c1b6f
+- name: github.com/mitchellh/gox
+  version: 54b619477e8932bbb6314644c867e7e6db7a9c71
+testImports: []
