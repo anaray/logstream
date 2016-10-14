@@ -1,7 +1,6 @@
 package main
 
 import (
-	//	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
@@ -11,16 +10,6 @@ import (
 	"time"
 	//"runtime"
 )
-
-/*type Conf struct {
-	Path          string `json:"base_directory"`
-	FilterPattern string `json:"filter_pattern"`
-	LogDelimRegex string `json:"log_delim_regex"`
-	LogType       string `json:"log_type"`
-	Interval      int64  `json:"interval"`
-	Timeout       int64  `json:"timeout"`
-	JournalPath   string `json:"journal_path"`
-}*/
 
 type Conf struct {
 	Path          string `toml:"base_directory"`
@@ -47,7 +36,6 @@ func main() {
 		os.Exit(1)
 	}
 	conf := Conf{}
-	//json.Unmarshal(c, &conf)
 	if _, err := toml.Decode(string(c), &conf); err != nil {
 		panic(fmt.Sprintf("logstream: failed to parse configuration file %s\n", *f))
 		os.Exit(1)
@@ -70,6 +58,8 @@ func main() {
 	go func() {
 		for {
 			r := <-agent.Output
+            //push to downstream plugin
+            //TODO: implement output plugin
 			fmt.Println("Log entry :", r)
 		}
 	}()
