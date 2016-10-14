@@ -1,14 +1,14 @@
 package main
 
 import (
-//	"encoding/json"
+	//	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"github.com/BurntSushi/toml"
 	"github.com/anaray/logstream/agent"
+	"io/ioutil"
 	"os"
 	"time"
-    "github.com/BurntSushi/toml"
 	//"runtime"
 )
 
@@ -21,7 +21,6 @@ import (
 	Timeout       int64  `json:"timeout"`
 	JournalPath   string `json:"journal_path"`
 }*/
-
 
 type Conf struct {
 	Path          string `toml:"base_directory"`
@@ -49,10 +48,10 @@ func main() {
 	}
 	conf := Conf{}
 	//json.Unmarshal(c, &conf)
-    if _,err := toml.Decode(string(c),&conf); err != nil{
+	if _, err := toml.Decode(string(c), &conf); err != nil {
 		panic(fmt.Sprintf("logstream: failed to parse configuration file %s\n", *f))
 		os.Exit(1)
-    }
+	}
 	logger.Logf("Creating LogStream Agent ...")
 	logger.Logf("File Path: %s\n", conf.Path)
 	logger.Logf("Filter: %s\n", conf.FilterPattern)
