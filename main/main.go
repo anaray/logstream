@@ -1,17 +1,18 @@
 package main
 
 import (
-	"encoding/json"
+//	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"github.com/anaray/logstream/agent"
 	"os"
 	"time"
+    "github.com/BurntSushi/toml"
 	//"runtime"
 )
 
-type Conf struct {
+/*type Conf struct {
 	Path          string `json:"base_directory"`
 	FilterPattern string `json:"filter_pattern"`
 	LogDelimRegex string `json:"log_delim_regex"`
@@ -19,6 +20,17 @@ type Conf struct {
 	Interval      int64  `json:"interval"`
 	Timeout       int64  `json:"timeout"`
 	JournalPath   string `json:"journal_path"`
+}*/
+
+
+type Conf struct {
+	Path          string `toml:"base_directory"`
+	FilterPattern string `toml:"filter_pattern"`
+	LogDelimRegex string `toml:"log_delim_regex"`
+	LogType       string `toml:"log_type"`
+	Interval      int64  `toml:"interval"`
+	Timeout       int64  `toml:"timeout"`
+	JournalPath   string `toml:"journal_path"`
 }
 
 /*func init() {
@@ -36,7 +48,11 @@ func main() {
 		os.Exit(1)
 	}
 	conf := Conf{}
-	json.Unmarshal(c, &conf)
+	//json.Unmarshal(c, &conf)
+    if _,err := toml.Decode(string(c),&conf); err != nil{
+		panic(fmt.Sprintf("logstream: failed to parse configuration file %s\n", *f))
+		os.Exit(1)
+    }
 	logger.Logf("Creating LogStream Agent ...")
 	logger.Logf("File Path: %s\n", conf.Path)
 	logger.Logf("Filter: %s\n", conf.FilterPattern)
