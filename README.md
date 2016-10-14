@@ -7,18 +7,17 @@ Logstream is a light weight agent for parsing and moving the logs from the sourc
 
 ```sh
 Usage:
-logstream -conf=my_conf.json
+logstream -conf=my_conf.toml
 
-configuration json contains the necessary configuration for logstream and configuration parameters are:
+configuration toml contains the necessary configuration for logstream and configuration parameters are:
 
-{
-  "journal_path" : "/my_journal_loc/",
-  "base_directory" : "/var/log/",
-  "filter_pattern" : "displaypolicyd.log",
-  "log_delim_regex" : "u>\\d*",
-  "log_type" : "displaypolicyd",
-  "interval" : 60
-}
+  journal_path = "/my_journal_loc/",
+  base_directory = "/var/log/",
+  filter_pattern = "displaypolicyd.log",
+  log_delim_regex = "u>\\d*",
+  log_type = "displaypolicyd",
+  interval = 60
+
 ```
 
 * journal_path = a file stored in disk to maintain file read position and other meta-data like size, modified_at etc.
